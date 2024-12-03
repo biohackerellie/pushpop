@@ -1,11 +1,12 @@
 {
   "name": "@epklabs/pushpop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "a front end client for PushPop written in typescript ",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "exports": {
     "./package.json": "./package.json",
+    "./README.md": "./README.md",
     ".": {
       "require": "./dist/index.js",
       "import": "./dist/index.mjs",
