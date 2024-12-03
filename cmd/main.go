@@ -1,24 +1,24 @@
 package main
 
 import (
-	"api/internal/chat"
-	"api/internal/lib/logger"
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
+
+	p "github.com/biohackerellie/pushpop"
 )
 
 func main() {
-	log := logger.New()
 
-	hub := chat.NewHub()
+	hub := p.NewHub()
 	go hub.Run()
 
 	// Register routes
-	http.HandleFunc("/trigger", chat.HandleTrigger(hub))
+	http.HandleFunc("/trigger", p.HandleTrigger(hub))
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		chat.ServeWs(hub, w, r)
+		p.ServeWs(hub, w, r)
 	})
 	// Start the server
 	server := &http.Server{
@@ -38,11 +38,11 @@ func main() {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 	<-signalChan
-	log.Info("Shutting down server...")
+	log.Print("Shutting down server...")
 
 	// Stop accepting new requests and clean up
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Fatal("Server shutdown failed", "err", err)
 	}
-	log.Info("Server gracefully stopped")
+	log.Print("Server gracefully stopped")
 }
