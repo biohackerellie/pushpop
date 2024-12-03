@@ -1,17 +1,18 @@
 {
   "name": "@epklabs/pushpop",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "a front end client for PushPop written in typescript ",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
+  "source": "./src/index.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
   "exports": {
     "./package.json": "./package.json",
-    "./README.md": "./README.md",
     ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
-      "node": "./dist/index.js",
-      "default": "./dist/index.js",
+      "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
   },
@@ -22,14 +23,17 @@
     "websocket",
     "typescript"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "homepage": "https://github.com/biohackerellie/pushpop",
   "repository": {
     "type": "git",
-    "url": "https://github.com/biohackerellie/pushpop"
+    "url": "https://github.com/biohackerellie/pushpop.git"
   },
   "scripts": {
     "build": "tsup",
-    "release": "pnpm run build && npm publish --access public"
+    "release": "pnpm run build && np --no-cleanup"
   },
   "author": {
     "name": "BiohackerEllie",
@@ -39,6 +43,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.10.1",
+    "np": "^10.1.0",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2"
   }

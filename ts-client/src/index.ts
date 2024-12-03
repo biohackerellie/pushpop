@@ -1,3 +1,51 @@
+
+
+/**
+ * PushPop Client Package
+ *
+ * This package provides a simple and lightweight client library for establishing
+ * WebSocket connections, subscribing to channels, and receiving real-time messages
+ * from the PushPop server.
+ *
+ * @remarks
+ * With this client, you can:
+ * - Connect to a PushPop-compatible WebSocket server.
+ * - Subscribe and unsubscribe from channels.
+ * - Bind callbacks to events and receive payloads in real time.
+ *
+ * @example
+ * ```typescript
+ * import { SocketClient } from '@epklabs/pushpop';
+ *
+ * const client = new SocketClient({ host: 'localhost', port: '8945', useTLS: false });
+ *
+ * // Subscribe to a channel
+ * client.subscribe('my-channel');
+ *
+ * // Bind an event and receive messages
+ * client.bind('my-channel', 'new-message', (data) => {
+ *   console.log('Received:', data);
+ * });
+ * ```
+ * @example
+ * Using the `SocketServer` to trigger events:
+ * ```typescript
+ * import { SocketServer } from '@epklabs/pushpop';
+ *
+ * const server = new SocketServer({ host: 'localhost', port: '8945', useTLS: false });
+ *
+ * // Trigger a message on 'my-channel'
+ * server.trigger({
+ *   channel: 'my-channel',
+ *   event: 'new-message',
+ *   payload: { text: 'Hello World!' }
+ * });
+ * ```
+ *
+ * @see {@link https://github.com/epklabs/pushpop | GitHub repository} for more examples and documentation.
+ *
+ */
+
 /**
  * Configuration options for setting up the WebSocket connection.
  */
