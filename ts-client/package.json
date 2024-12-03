@@ -1,0 +1,44 @@
+{
+  "name": "@epklabs/pushpop",
+  "version": "1.0.0",
+  "description": "a front end client for PushPop written in typescript ",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "node": "./dist/index.js",
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "keywords": [
+    "pushpop",
+    "client",
+    "websocket",
+    "typescript"
+  ],
+  "homepage": "https://github.com/biohackerellie/pushpop",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/biohackerellie/pushpop"
+  },
+  "scripts": {
+    "build": "tsup",
+    "release": "pnpm run build && npm publish --access public"
+  },
+  "author": {
+    "name": "BiohackerEllie",
+    "url": "https://github.com/biohackerellie",
+    "email": "ellie@epklabs.com"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  }
+}

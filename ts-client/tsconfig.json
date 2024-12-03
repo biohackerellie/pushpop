@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "lib": ["ESNext", "dom"],
+        "outDir": "./dist",
+        "sourceMap": true,
+        "noImplicitAny": false,
+        "module": "ES2022",
+        "target": "es2022",
+        "moduleResolution": "node",
+        "jsx": "react",
+        "skipLibCheck": true
+    },
+    "include": ["./src/*"],
+    "exclude": ["test/**/*"]
+}
