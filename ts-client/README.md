@@ -1,5 +1,8 @@
 # PushPop
 
+[![jsDocs.io](https://img.shields.io/badge/jsDocs.io-reference-blue)](https://www.jsdocs.io/package/@epklabs/pushpop)
+
+
 A simple and friendly WebSocket solution for real-time messaging.  
 Use the Go server and hub to handle WebSocket communication with clients, and pair it with the TypeScript/JavaScript client library to easily integrate into your frontend applications.
 

@@ -1,5 +1,3 @@
-
-
 /**
  * PushPop Client Package
  *
