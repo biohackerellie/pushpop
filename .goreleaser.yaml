@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
+version: 2
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - main: ./cmd/main.go
+    id: "pushpop"
+    binary: pushpop
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+    ldflags: -s -w -X main.Version=v{{ .Version }} -X main.CommitSHA={{ .Commit }} -X main.CommitDate={{ .CommitDate }}
+    no_unique_dist_dir: false
+signs:
+  - artifacts: checksum
+    cmd: gpg
+    args:
+      - "--batch"
+      - "-u"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+checksum: 
+  name_template: "checksums.txt"
+
+dockers:
+  id: "pushpop"
+  goos: linux
+  image_templates:
+    - "ghcr.io/biohackerellie/pushpop:latest"
+
+source:
+  enabled: true
+
+sboms:
+  - artifacts: archive
+  - id: source
+    artifacts: source

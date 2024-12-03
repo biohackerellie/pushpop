@@ -1,0 +1,39 @@
+name: Releasing artifacts with GoReleaser
+on:
+  push:
+permissions:
+   contents: write # needed to write releases
+   packages: write # needed for ghcr access
+jobs:
+  tag:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: 
+        - 22
+    steps: 
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: release
+    - name: AutoTag
+      uses: biohackerellie/auto-git-tag@v1
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # this is important, otherwise it won't checkout the full tree (i.e. no previous tags)
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: true
+          check-latest: true
+      - uses: goreleaser/goreleaser-action@v6 # run goreleaser
+        with:
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
