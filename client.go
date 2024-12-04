@@ -40,6 +40,16 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		log.Print("Failed to upgrade connection", "err", err)
 		return
 	}
+	conn.SetReadLimit(maxMessageSize)
+	if err := conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
+		log.Print("Error setting read deadline", "err", err)
+	}
+	conn.SetPongHandler(func(string) error {
+		if err := conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
+			log.Print("Error setting read deadline", "err", err)
+		}
+		return nil
+	})
 
 	client := &Client{
 		hub:      hub,
@@ -79,6 +89,10 @@ func (c *Client) readPump() {
 			continue
 		}
 		switch action {
+		case "ping":
+			if err := c.conn.WriteMessage(websocket.TextMessage, []byte(`{"action":"pong"}`)); err != nil {
+				log.Print("Error sending pong", "err", err)
+			}
 		case "subscribe":
 			c.hub.register <- &Subscription{Client: c, Channel: channel}
 		case "unsubscribe":
@@ -108,10 +122,12 @@ func (c *Client) writePump() {
 	for {
 		select {
 		case message, ok := <-c.send:
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+				log.Print("Error setting write deadline", "err", err)
+			}
 			if !ok {
 				// The hub closed the channel.
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				_ = c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
@@ -125,7 +141,9 @@ func (c *Client) writePump() {
 			}
 
 		case <-ticker.C:
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+				log.Print("Error setting write deadline", "err", err)
+			}
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
 					log.Print("WebSocket closed by client")

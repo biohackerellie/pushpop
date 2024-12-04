@@ -144,6 +144,9 @@ export class SocketClient {
     return this.channels[channelName];
   }
 
+  private heartbeatInterval = 30000; // 30 seconds
+  private heartbeatTimer: NodeJS.Timeout | null = null;
+
   /**
    * Initiates the WebSocket connection and sets up event handlers.
    */
@@ -164,14 +167,32 @@ export class SocketClient {
           channel: channelName,
         });
       });
+
+      // Send heartbeat
+      if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = setInterval(() => {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+          this.send({ action: 'ping' });
+        }
+      }, this.heartbeatInterval);
+
+      // Flush message queue
+      while (this.messageQueue.length > 0) {
+        const message = this.messageQueue.shift();
+        this.send(message);
+      }
     };
 
     this.socket.onclose = (event) => {
-      console.warn(`WebSocket closed: ${event.code} - ${event.reason}`);
+      this.logConnectionState();
+      if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+      if (event.code === 1006) {
+        console.error('WebSocket connection failed. Retrying...');
+      }
       if (this.reconnectAttempts < this.maxReconnectAttempts) {
-        console.warn('Attempting to reconnect...');
         const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 30000);
-        setTimeout(() => this.connect(), delay);
+        const jitter = Math.random() * 500;
+        setTimeout(() => this.connect(), delay + jitter);
         this.reconnectAttempts++;
       } else {
         console.error('Max reconnect attempts reached. Giving up.');
@@ -180,6 +201,12 @@ export class SocketClient {
 
     this.socket.onmessage = (event) => {
       const message: SocketMessage = JSON.parse(event.data);
+
+      if (message.event === 'ping') {
+        this.send({ action: 'pong' });
+        return;
+      }
+
       const channel = this.channels[message.channel];
       if (channel) {
         channel.trigger(message.event, message.payload);
@@ -191,6 +218,8 @@ export class SocketClient {
     };
   }
 
+  private messageQueue: any[] = [];
+
   /**
    * Sends data over the WebSocket connection.
    * @param data The data to send.
@@ -200,7 +229,34 @@ export class SocketClient {
       this.socket.send(JSON.stringify(data));
     } else {
       console.warn('WebSocket is not open. Unable to send message.');
+      this.messageQueue.push(data);
     }
+  }
+
+  /**
+   * Returns the current state of the WebSocket connection.
+   */
+  getConnectionState(): string {
+    if (!this.socket) return 'DISCONNECTED';
+    switch (this.socket.readyState) {
+      case WebSocket.CONNECTING:
+        return 'CONNECTING';
+      case WebSocket.OPEN:
+        return 'OPEN';
+      case WebSocket.CLOSING:
+        return 'CLOSING';
+      case WebSocket.CLOSED:
+        return 'CLOSED';
+      default:
+        return 'UNKNOWN';
+    }
+  }
+
+  /**
+   * logs the current state of the WebSocket connection.
+   */
+  logConnectionState() {
+    console.debug('WebSocket connection state:', this.getConnectionState());
   }
 
   /**

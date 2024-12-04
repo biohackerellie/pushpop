@@ -1,0 +1,24 @@
+{
+  "name": "pushpop/root",
+  "version": "0.0.0",
+  "scripts": {
+    "release": "changeset version",
+    "publish": "cd ts-client && pnpm publish",
+    "check:ts": "cd ts-client && pnpm run lint",
+    "build": "cd ts-client && pnpm run build",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@changesets/changelog-github": "^0.4.8",
+    "@changesets/cli": "^2.27.3"
+  },
+  "lint-staged": {
+    "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10"
+  }
+}

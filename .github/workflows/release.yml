@@ -1,16 +1,14 @@
-name: Releasing artifacts with GoReleaser
+name: Release
 on:
   push:
-    paths:
-      - 'cmd/**' # Monitor Go source files
-      - 'ts-client/src/**'
-      - 'go.mod'
-      - 'go.sum'
+    branches:
+      - main
 permissions:
-   contents: write # needed to write releases
-   packages: write # needed for ghcr access
+   contents: write 
+   packages: write 
 jobs:
   tag:
+    if: ${{ github_actor == 'biohackerellie'}}
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -28,7 +26,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         release_branch: 'main'  
   release:
-    if: ${{ github.event_name == 'push' && github.event.commits }}
+    if: ${{ github_actor == 'biohackerellie'}}
     runs-on: ubuntu-latest
     needs: tag
     permissions:
@@ -38,13 +36,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # this is important, otherwise it won't checkout the full tree (i.e. no previous tags)
+          fetch-depth: 0 
       - uses: actions/setup-go@v5
         with:
           go-version: stable
           cache: true
           check-latest: true
-      - uses: goreleaser/goreleaser-action@v6 # run goreleaser
+      - uses: ./.github/actions/setup
+      - name: Build Typescript
+        run: pnpm build
+
+      - name: Create Version
+        id: changesets
+        uses: changesets/actions@v1
+        with:
+          version: node .github/changeset-version.js
+          publish: npx changeset publish
+          createGithubReleases: false
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          NPM_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_ENV: "production"
+      - uses: goreleaser/goreleaser-action@v6 
         with:
           args: release --clean
           version: ${{ env.GITHUB_REF_NAME }}

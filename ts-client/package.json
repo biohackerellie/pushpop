@@ -6,9 +6,7 @@
   "module": "./dist/index.mjs",
   "source": "./src/index.ts",
   "type": "module",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "exports": {
     "./package.json": "./package.json",
     ".": {
@@ -17,12 +15,7 @@
     }
   },
   "types": "./dist/index.d.ts",
-  "keywords": [
-    "pushpop",
-    "client",
-    "websocket",
-    "typescript"
-  ],
+  "keywords": ["pushpop", "client", "websocket", "typescript"],
   "engines": {
     "node": ">=20"
   },
@@ -35,7 +28,8 @@
     "build": "tsup",
     "test": "vitest",
     "lint": "npx @biomejs/biome check --write --unsafe",
-    "release": "pnpm run build && np --no-cleanup"
+    "release": "changeset version",
+    "publish": "npm publish"
   },
   "author": {
     "name": "BiohackerEllie",
