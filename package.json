@@ -17,6 +17,7 @@
       "biome check --write --no-errors-on-unmatched"
     ]
   },
+  "packageManager": "pnpm@9.14.4",
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^15.2.10"
