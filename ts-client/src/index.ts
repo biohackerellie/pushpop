@@ -183,12 +183,8 @@ export class SocketClient {
       }
     };
 
-    this.socket.onclose = (event) => {
-      this.logConnectionState();
+    this.socket.onclose = () => {
       if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
-      if (event.code === 1006) {
-        console.error('WebSocket connection failed. Retrying...');
-      }
       if (this.reconnectAttempts < this.maxReconnectAttempts) {
         const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 30000);
         const jitter = Math.random() * 500;
@@ -250,13 +246,6 @@ export class SocketClient {
       default:
         return 'UNKNOWN';
     }
-  }
-
-  /**
-   * logs the current state of the WebSocket connection.
-   */
-  logConnectionState() {
-    console.debug('WebSocket connection state:', this.getConnectionState());
   }
 
   /**

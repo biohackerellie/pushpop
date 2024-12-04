@@ -76,15 +76,14 @@ func (c *Client) readPump() {
 		if err := c.conn.ReadJSON(&message); err != nil {
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
 				log.Print("WebSocket closed by client")
-			} else {
-				log.Print("Error reading JSON", "err", err)
 			}
-			break
+
+			return
 		}
 
 		action, _ := message["action"].(string)
 		channel, _ := message["channel"].(string)
-		log.Print("Received message", "action", action, "channel", channel, "message", message)
+
 		if action == "" || channel == "" {
 			continue
 		}
@@ -107,7 +106,7 @@ func (c *Client) readPump() {
 			c.hub.broadcast <- msg
 		default:
 			// Ignore unknown actions
-			log.Print("Unknown action", "action", action)
+			log.Printf("Unknown action: %s", action)
 		}
 	}
 }

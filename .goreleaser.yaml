@@ -7,7 +7,7 @@ builds:
     id: "pushpop"
     binary: pushpop
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
     goos:
       - linux
     goarch:
@@ -25,7 +25,6 @@ kos:
       - "{{.Version}}"
       - latest
     bare: true
-    preserve_import_paths: false
     main: ./cmd/...
     base_image: alpine
     platforms:

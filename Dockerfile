@@ -1,3 +1,3 @@
-FROM scratch
+FROM alpine:latest
 ENTRYPOINT ["/pushpop"]
 COPY pushpop /
