@@ -34,6 +34,9 @@ jobs:
       - name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
       - uses: anchore/sbom-action/download-syft@v0.17.8
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
