@@ -42,6 +42,7 @@
  *
  * @see {@link https://github.com/epklabs/pushpop | GitHub repository} for more examples and documentation.
  *
+ * @packageDocumentation
  */
 
 /**
