@@ -19,7 +19,10 @@ jobs:
         fetch-depth: 0
     - name: AutoTag
       uses: biohackerellie/auto-git-tag@v1
-  release:
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        release_branch: 'main'  
+release:
     runs-on: ubuntu-latest
     needs: tag
     permissions:
