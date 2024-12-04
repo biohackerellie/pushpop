@@ -26,7 +26,7 @@ kos:
       - latest
     bare: true
     preserve_import_paths: false
-    main: ./cmd/main.go
+    main: ./cmd/...
     base_image: alpine
     platforms:
       - linux/amd64
