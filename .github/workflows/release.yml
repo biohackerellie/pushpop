@@ -26,7 +26,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         release_branch: 'main'  
   release:
-    if: ${{ github_actor == 'biohackerellie'}}
+    if: ${{ github.actor == 'biohackerellie'}}
     runs-on: ubuntu-latest
     needs: tag
     permissions:
