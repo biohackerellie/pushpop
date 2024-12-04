@@ -1,12 +1,14 @@
 {
   "name": "@epklabs/pushpop",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "a front end client for PushPop written in typescript ",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "source": "./src/index.ts",
   "type": "module",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "exports": {
     "./package.json": "./package.json",
     ".": {
@@ -15,7 +17,12 @@
     }
   },
   "types": "./dist/index.d.ts",
-  "keywords": ["pushpop", "client", "websocket", "typescript"],
+  "keywords": [
+    "pushpop",
+    "client",
+    "websocket",
+    "typescript"
+  ],
   "engines": {
     "node": ">=20"
   },
