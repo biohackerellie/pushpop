@@ -1,11 +1,11 @@
 name: goreleaser
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     tags:
       - "*"
-
 permissions:
   contents: write
   packages: write

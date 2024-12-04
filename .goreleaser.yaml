@@ -7,7 +7,7 @@ builds:
     id: "pushpop"
     binary: pushpop
     env:
-      - CGO_ENABLED=1
+      - CGO_ENABLED=0
     goos:
       - linux
     goarch:
