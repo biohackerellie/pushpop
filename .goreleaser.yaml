@@ -18,11 +18,17 @@ builds:
 checksum: 
   name_template: "checksums.txt"
 
-dockers:
-  - id: "pushpop"
-    goos: linux
-    image_templates:
-      - "ghcr.io/biohackerellie/pushpop:latest"
+
+kos:
+  - repository: ghcr.io/biohackerellie/pushpop
+    tags:
+      - "{{.Version}}"
+      - latest
+    bare: true
+    preserve_import_paths: false
+    platforms:
+      - linux/amd64
+      - linux/arm64
 
 source:
   enabled: true
