@@ -27,7 +27,7 @@ kos:
     bare: true
     preserve_import_paths: false
     main: ./cmd/main.go
-    base_iamge: alpine
+    base_image: alpine
     platforms:
       - linux/amd64
       - linux/arm64
