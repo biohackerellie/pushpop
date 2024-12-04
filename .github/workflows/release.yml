@@ -48,7 +48,7 @@ jobs:
 
       - name: Create Version
         id: changesets
-        uses: changesets/actions@v1
+        uses: changesets/action@v1
         with:
           version: node .github/changeset-version.js
           publish: npx changeset publish
