@@ -12,7 +12,6 @@ builds:
       - linux
     goarch:
       - amd64
-      - arm64
     ldflags: -s -w -X main.Version=v{{ .Version }} -X main.CommitSHA={{ .Commit }} -X main.CommitDate={{ .CommitDate }}
     no_unique_dist_dir: false
 checksum: 
@@ -29,8 +28,6 @@ kos:
     base_image: alpine
     platforms:
       - linux/amd64
-      - linux/arm64
-
 source:
   enabled: true
 
