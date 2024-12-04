@@ -27,12 +27,6 @@ jobs:
       id-token: write
       packages: write
     steps:
-      - name: Import GPG key
-        id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # this is important, otherwise it won't checkout the full tree (i.e. no previous tags)
@@ -41,14 +35,9 @@ jobs:
           go-version: stable
           cache: true
           check-latest: true
-      - uses: anchore/sbom-action/download-syft@v0.17.8
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
       - uses: goreleaser/goreleaser-action@v6 # run goreleaser
         with:
           args: release --clean
           version: ${{ env.GITHUB_REF_NAME }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GPG_FINGERPRINT: ${{steps.import_gpg.outputs.fingerprint}} 

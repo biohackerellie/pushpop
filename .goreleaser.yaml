@@ -15,17 +15,6 @@ builds:
       - arm64
     ldflags: -s -w -X main.Version=v{{ .Version }} -X main.CommitSHA={{ .Commit }} -X main.CommitDate={{ .CommitDate }}
     no_unique_dist_dir: false
-signs:
-  - artifacts: checksum
-    cmd: gpg
-    args:
-      - "--batch"
-      - "-u"
-      - "{{ .Env.GPG_FINGERPRINT }}"
-      - "--output"
-      - "${signature}"
-      - "--detach-sign"
-      - "${artifact}"
 checksum: 
   name_template: "checksums.txt"
 
@@ -38,7 +27,3 @@ dockers:
 source:
   enabled: true
 
-sboms:
-  - artifacts: archive
-  - id: source
-    artifacts: source
