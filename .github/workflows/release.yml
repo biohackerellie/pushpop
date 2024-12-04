@@ -8,7 +8,7 @@ permissions:
    packages: write 
 jobs:
   tag:
-    if: ${{ github_actor == 'biohackerellie'}}
+    if: ${{ github.actor == 'biohackerellie'}}
     permissions:
       contents: write
     runs-on: ubuntu-latest
