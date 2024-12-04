@@ -1,0 +1,32 @@
+name: goreleaser
+
+on:
+  pull_request:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+  packages: write
+  issues: write
+  id-token: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: goreleaser/goreleaser-action@v6 
+        with:
+          args: release --clean
+          version: ${{ env.GITHUB_REF_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

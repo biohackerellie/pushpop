@@ -26,22 +26,13 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Build Typescript
         run: pnpm build
-
-      - name: Create Version
-        id: changesets
-        uses: changesets/action@v1
+      - name: Create Release
+        id: changeset
+        uses: changesets/action@v1.4.7
         with:
-          version: node .github/changeset-version.js
+          commit: "chore(release): ?? version packages"
+          title: "chore(release): ??  version packages"
           publish: npx changeset publish
-          createGithubReleases: false
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          NPM_TOKEN: ${{secrets.NPM_TOKEN}}
-          NODE_ENV: "production"
-      - uses: goreleaser/goreleaser-action@v6 
-        if: steps.changesets.outputs.published == 'true'
-        with:
-          args: release --clean
-          version: ${{ env.GITHUB_REF_NAME }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
