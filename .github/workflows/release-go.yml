@@ -28,6 +28,9 @@ jobs:
         ref: release
     - name: AutoTag
       uses: biohackerellie/auto-git-tag@v1
+      with:
+        release_branch: 'main' 
+
   goreleaser:
     needs: tag
     runs-on: ubuntu-latest
