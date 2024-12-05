@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -23,21 +24,21 @@ type Subscription struct {
 
 // Hub maintains the set of active clients and broadcasts messages.
 type Hub struct {
-	clients    map[*Client]bool
+	clients    sync.Map
 	broadcast  chan Message
 	register   chan *Subscription
 	unregister chan *Subscription
-	channels   map[string]map[*Client]bool
+	channels   sync.Map
 }
 
 // NewHub creates a new Hub.
 func NewHub() *Hub {
 	return &Hub{
-		broadcast:  make(chan Message),
-		register:   make(chan *Subscription),
-		unregister: make(chan *Subscription),
-		channels:   make(map[string]map[*Client]bool),
-		clients:    make(map[*Client]bool),
+		broadcast:  make(chan Message, 100),
+		register:   make(chan *Subscription, 100),
+		unregister: make(chan *Subscription, 100),
+		channels:   sync.Map{},
+		clients:    sync.Map{},
 	}
 }
 
@@ -56,41 +57,44 @@ func (h *Hub) Run() {
 }
 
 func (h *Hub) addSubscription(sub *Subscription) {
-	clients := h.channels[sub.Channel]
-	if clients == nil {
-		clients = make(map[*Client]bool)
-		h.channels[sub.Channel] = clients
-	}
-	clients[sub.Client] = true
-	sub.Client.channels[sub.Channel] = true
+	val, _ := h.channels.LoadOrStore(sub.Channel, &sync.Map{})
+	clients := val.(*sync.Map)
+	clients.Store(sub.Client, true)
+	sub.Client.channels.Store(sub.Channel, true)
 }
 
 func (h *Hub) removeSubscription(sub *Subscription) {
-	clients := h.channels[sub.Channel]
-	if clients != nil {
-		if _, ok := clients[sub.Client]; ok {
-			delete(clients, sub.Client)
-			delete(sub.Client.channels, sub.Channel)
-			if len(clients) == 0 {
-				delete(h.channels, sub.Channel)
-			}
+	val, ok := h.channels.Load(sub.Channel)
+	if ok {
+		clients := val.(*sync.Map)
+
+		sub.Client.channels.Delete(sub.Channel)
+		clients.Delete(sub.Client)
+		count := 0
+
+		clients.Range(func(_, _ interface{}) bool {
+			count++
+			return false
+		})
+		if count == 0 {
+			h.channels.Delete(sub.Channel)
 		}
 	}
 }
 
 func (h *Hub) broadcastMessage(message Message) {
-	clients := h.channels[message.Channel]
-	if clients == nil {
-		log.Print("No clients in channel", "channel", message.Channel)
-		return
-	}
-	for client := range clients {
-		select {
-		case client.send <- message:
-		default:
-			close(client.send)
-			delete(clients, client)
-		}
+	val, ok := h.channels.Load(message.Channel)
+	if ok {
+		clients := val.(*sync.Map)
+		clients.Range(func(key, _ interface{}) bool {
+			client := key.(*Client)
+			select {
+			case client.send <- message:
+			default:
+				h.RemoveClient(client)
+			}
+			return true
+		})
 	}
 }
 
@@ -131,9 +135,12 @@ func HandleTrigger(hub *Hub) http.HandlerFunc {
 
 // RemoveClient removes a client from all channels and the hub.
 func (h *Hub) RemoveClient(client *Client) {
-	for channel := range client.channels {
+	client.channels.Range(func(key, _ interface{}) bool {
+		channel := key.(string)
 		h.unregister <- &Subscription{Client: client, Channel: channel}
-	}
-	delete(h.clients, client)
+		return true
+	})
+
+	h.clients.Delete(client)
 	close(client.send)
 }

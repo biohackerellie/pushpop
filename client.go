@@ -1,8 +1,10 @@
 package pushpop
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -10,7 +12,7 @@ import (
 
 // Client represents a WebSocket client.
 type Client struct {
-	channels map[string]bool
+	channels sync.Map
 	hub      *Hub
 	conn     *websocket.Conn
 	send     chan Message
@@ -55,64 +57,76 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		hub:      hub,
 		conn:     conn,
 		send:     make(chan Message, 256),
-		channels: make(map[string]bool),
+		channels: sync.Map{},
 	}
 
-	hub.clients[client] = true
+	hub.clients.Store(client, true)
+	ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
 
-	go client.writePump()
-	go client.readPump()
+	defer cancel()
+	go client.writePump(ctx)
+	go client.readPump(ctx)
 }
 
 // readPump reads messages from the WebSocket connection.
-func (c *Client) readPump() {
+func (c *Client) readPump(ctx context.Context) {
 	defer func() {
-		c.hub.RemoveClient(c)
-		c.conn.Close()
+		c.hub.RemoveClient(c) // Unregister the client from the hub
+		c.conn.Close()        // Close the WebSocket connection
 	}()
 
 	for {
-		var message map[string]interface{}
-		if err := c.conn.ReadJSON(&message); err != nil {
-			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-				log.Print("WebSocket closed by client")
-			}
-
+		select {
+		case <-ctx.Done():
+			log.Printf("Context canceled for client: %v", c.conn.RemoteAddr())
 			return
-		}
 
-		action, _ := message["action"].(string)
-		channel, _ := message["channel"].(string)
-
-		if action == "" || channel == "" {
-			continue
-		}
-		switch action {
-		case "ping":
-			if err := c.conn.WriteMessage(websocket.TextMessage, []byte(`{"action":"pong"}`)); err != nil {
-				log.Print("Error sending pong", "err", err)
-			}
-		case "subscribe":
-			c.hub.register <- &Subscription{Client: c, Channel: channel}
-		case "unsubscribe":
-			c.hub.unregister <- &Subscription{Client: c, Channel: channel}
-		case "message":
-			payload := message["payload"]
-			msg := Message{
-				Channel: channel,
-				Event:   "message",
-				Payload: payload,
-			}
-			c.hub.broadcast <- msg
 		default:
-			// Ignore unknown actions
-			log.Printf("Unknown action: %s", action)
+			var message map[string]interface{}
+			if err := c.conn.ReadJSON(&message); err != nil {
+				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+					log.Printf("WebSocket closed by client: %v", c.conn.RemoteAddr())
+				} else {
+					log.Printf("Error reading JSON from client: %v, err: %v", c.conn.RemoteAddr(), err)
+				}
+				return // Exit on read error
+			}
+
+			action, _ := message["action"].(string)
+			channel, _ := message["channel"].(string)
+
+			if action == "" || channel == "" {
+				continue
+			}
+
+			switch action {
+			case "ping":
+				if err := c.conn.WriteMessage(websocket.TextMessage, []byte(`{"action":"pong"}`)); err != nil {
+					log.Printf("Error sending pong to client: %v, err: %v", c.conn.RemoteAddr(), err)
+					return
+				}
+
+			case "subscribe":
+				c.hub.register <- &Subscription{Client: c, Channel: channel}
+
+			case "unsubscribe":
+				c.hub.unregister <- &Subscription{Client: c, Channel: channel}
+
+			case "message":
+				payload := message["payload"]
+				msg := Message{
+					Channel: channel,
+					Event:   "message",
+					Payload: payload,
+				}
+				c.hub.broadcast <- msg
+
+			default:
+			}
 		}
 	}
-}
-
 // writePump writes messages to the WebSocket connection.
-func (c *Client) writePump() {
+func (c *Client) writePump(ctx context.Context) {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
@@ -138,7 +152,8 @@ func (c *Client) writePump() {
 				}
 				return
 			}
-
+		case <-ctx.Done():
+			return
 		case <-ticker.C:
 			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
 				log.Print("Error setting write deadline", "err", err)
