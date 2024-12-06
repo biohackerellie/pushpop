@@ -1,6 +1,7 @@
 package pushpop
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
@@ -73,16 +74,23 @@ func (c *Client) readPump() {
 	}()
 
 	for {
-		select {
-		default:
+		messageType, rawMessage, err := c.conn.ReadMessage()
+		if err != nil {
+			// Handle normal WebSocket close events
+			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+				log.Printf("WebSocket closed by client: %v", c.conn.RemoteAddr())
+			} else {
+				log.Printf("Error reading message from client: %v, err: %v", c.conn.RemoteAddr(), err)
+			}
+			return // Exit on read error
+		}
+
+		switch messageType {
+		case websocket.TextMessage: // JSON or plain text
 			var message map[string]interface{}
-			if err := c.conn.ReadJSON(&message); err != nil {
-				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-					log.Printf("WebSocket closed by client: %v", c.conn.RemoteAddr())
-				} else {
-					log.Printf("Error reading JSON from client: %v, err: %v", c.conn.RemoteAddr(), err)
-				}
-				return // Exit on read error
+			if err := json.Unmarshal(rawMessage, &message); err != nil {
+				log.Printf("Invalid JSON from client: %v, message: %s, err: %v", c.conn.RemoteAddr(), string(rawMessage), err)
+				continue // Skip invalid JSON messages
 			}
 
 			action, _ := message["action"].(string)
