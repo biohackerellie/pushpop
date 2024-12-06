@@ -125,7 +125,10 @@ func (c *Client) readPump(ctx context.Context) {
 			}
 		}
 	}
+}
+
 // writePump writes messages to the WebSocket connection.
+
 func (c *Client) writePump(ctx context.Context) {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
