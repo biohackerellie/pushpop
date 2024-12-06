@@ -1,7 +1,6 @@
 package pushpop
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"sync"
@@ -61,15 +60,13 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 
 	hub.clients.Store(client, true)
-	ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
 
-	defer cancel()
-	go client.writePump(ctx)
-	go client.readPump(ctx)
+	go client.writePump()
+	go client.readPump()
 }
 
 // readPump reads messages from the WebSocket connection.
-func (c *Client) readPump(ctx context.Context) {
+func (c *Client) readPump() {
 	defer func() {
 		c.hub.RemoveClient(c) // Unregister the client from the hub
 		c.conn.Close()        // Close the WebSocket connection
@@ -77,10 +74,6 @@ func (c *Client) readPump(ctx context.Context) {
 
 	for {
 		select {
-		case <-ctx.Done():
-			log.Printf("Context canceled for client: %v", c.conn.RemoteAddr())
-			return
-
 		default:
 			var message map[string]interface{}
 			if err := c.conn.ReadJSON(&message); err != nil {
@@ -129,7 +122,7 @@ func (c *Client) readPump(ctx context.Context) {
 
 // writePump writes messages to the WebSocket connection.
 
-func (c *Client) writePump(ctx context.Context) {
+func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
@@ -155,8 +148,6 @@ func (c *Client) writePump(ctx context.Context) {
 				}
 				return
 			}
-		case <-ctx.Done():
-			return
 		case <-ticker.C:
 			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
 				log.Print("Error setting write deadline", "err", err)
