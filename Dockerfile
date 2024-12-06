@@ -13,15 +13,12 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./bin/pushpop ./cmd/main.go
 
 # Minimal Runtime Stage
-FROM gcr.io/distroless/static-debian12
+FROM scratch
 
 WORKDIR /
 
 # Copy the statically built binary
 COPY --from=builder /app/bin/pushpop ./pushpop
-
-# Ensure the binary has executable permissions
-RUN chmod +x ./pushpop
 
 # Default command
 CMD ["./pushpop"]
