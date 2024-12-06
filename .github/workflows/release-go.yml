@@ -35,6 +35,8 @@ jobs:
         uses: docker/metadata-action@b53be03109c4ef6f6cc7aa545b84b17a7fe51c1e
         with:
           images: ${{ env.REGISTRY }}/${{ env.GOAPI_IMAGE_NAME}}
+          flavor: |
+            latest=true
           tags: |
             type=ref,event=branch
             type=schedule,enable=true,priority=1000,prefix=,suffix=,pattern=nightly
