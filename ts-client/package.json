@@ -3,8 +3,8 @@
   "version": "1.0.12",
   "description": "a front end client for PushPop written in typescript ",
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
   "source": "./src/index.ts",
+  "sideEffects": false,
   "type": "module",
   "files": [
     "dist"
@@ -35,8 +35,7 @@
     "build": "tsup",
     "test": "vitest",
     "lint": "npx @biomejs/biome check --write --unsafe",
-    "release": "changeset version",
-    "publish": "npm publish"
+    "publish": "np --no-cleanup"
   },
   "author": {
     "name": "BiohackerEllie",
