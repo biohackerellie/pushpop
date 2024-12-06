@@ -172,7 +172,7 @@ export class SocketClient {
       if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = setInterval(() => {
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-          this.send({ action: 'ping' });
+          this.send('');
         }
       }, this.heartbeatInterval);
 
