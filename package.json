@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "release": "changeset version",
-    "publish": "npx np ",
+    "publish": "cd ts-client && npx np",
     "check:ts": "cd ts-client && pnpm run lint",
     "build": "cd ts-client && pnpm run build"
   },
