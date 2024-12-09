@@ -17,9 +17,7 @@ func main() {
 
 	// Register routes
 	http.HandleFunc("/trigger", p.HandleTrigger(hub))
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		p.ServeWs(hub, w, r)
-	})
+	http.HandleFunc("/ws", p.ServeWs(hub))
 	// Start the server
 	server := &http.Server{
 		Addr: "0.0.0.0:8945",

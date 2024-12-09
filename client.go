@@ -37,34 +37,36 @@ var upgrader = websocket.Upgrader{
 }
 
 // ServeWs handles WebSocket requests from clients.
-func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Print("Failed to upgrade connection", "err", err)
-		return
-	}
-	conn.SetReadLimit(maxMessageSize)
-	if err := conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
-		log.Print("Error setting read deadline", "err", err)
-	}
-	conn.SetPongHandler(func(string) error {
+func ServeWs(hub *Hub) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Print("Failed to upgrade connection", "err", err)
+			return
+		}
+		conn.SetReadLimit(maxMessageSize)
 		if err := conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
 			log.Print("Error setting read deadline", "err", err)
 		}
-		return nil
-	})
+		conn.SetPongHandler(func(string) error {
+			if err := conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
+				log.Print("Error setting read deadline", "err", err)
+			}
+			return nil
+		})
 
-	client := &Client{
-		hub:      hub,
-		conn:     conn,
-		send:     make(chan Message, 256),
-		channels: sync.Map{},
+		client := &Client{
+			hub:      hub,
+			conn:     conn,
+			send:     make(chan Message, 256),
+			channels: sync.Map{},
+		}
+
+		hub.clients.Store(client, true)
+
+		go client.writePump()
+		go client.readPump()
 	}
-
-	hub.clients.Store(client, true)
-
-	go client.writePump()
-	go client.readPump()
 }
 
 // readPump reads messages from the WebSocket connection.
