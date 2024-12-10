@@ -1,5 +1,11 @@
 # @epklabs/pushpop
 
+## 1.1.5
+
+### Patch Changes
+
+- 42447ca: fixing ci so this all happens automatically
+
 ## 1.1.4
 
 ### Patch Changes
