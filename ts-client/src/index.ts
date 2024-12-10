@@ -57,6 +57,8 @@ export interface SocketOptions {
   channels?: string | string[];
   /** Whether to use TLS (wss/https) or not */
   useTLS?: boolean;
+  /** Whether to enable debug mode */
+  debug?: boolean
 }
 
 /**
@@ -123,6 +125,7 @@ export class SocketClient {
   private channels: Record<string, Channel> = {};
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private debug = false;
 
   /**
    * Constructs a new SocketClient instance and initiates connection.
@@ -132,7 +135,8 @@ export class SocketClient {
     this.host = opts.host;
     this.port = opts.port;
     this.useTLS = opts.useTLS;
-    this.connect();
+    this.debug = opts.debug ?? false;
+    this.connect(); 
   }
 
   /**
@@ -143,9 +147,21 @@ export class SocketClient {
   channel(channelName: string): Channel | undefined {
     return this.channels[channelName];
   }
+  
+  /**
+   * Adds Logging Layer to the client
+   * @param args The arguments to log
+   * @instance debug must be enabled to log
+   * @returns void
+   */
+  private log(...args: any[]) {
+    if (this.debug){
+      console.log(...args);
+    }
+  }
+  
 
-  private heartbeatInterval = 30000; // 30 seconds
-  private heartbeatTimer: NodeJS.Timeout | null = null;
+  private reconnectTimeout: NodeJS.Timeout | null = null
 
   /**
    * Initiates the WebSocket connection and sets up event handlers.
@@ -168,13 +184,6 @@ export class SocketClient {
         });
       });
 
-      // Send heartbeat
-      if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
-      this.heartbeatTimer = setInterval(() => {
-        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-          this.send('');
-        }
-      }, this.heartbeatInterval);
 
       // Flush message queue
       while (this.messageQueue.length > 0) {
@@ -183,12 +192,19 @@ export class SocketClient {
       }
     };
 
-    this.socket.onclose = () => {
-      if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
-      if (this.reconnectAttempts < this.maxReconnectAttempts) {
+    this.socket.onclose = (event) => {
+
+      if(this.reconnectTimeout){
+        clearTimeout(this.reconnectTimeout);
+        this.reconnectTimeout = null;
+      }
+
+      const shouldReconnect = event.code !== 1000 && event.code !== 1001;
+
+      if (shouldReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
         const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 30000);
         const jitter = Math.random() * 500;
-        setTimeout(() => this.connect(), delay + jitter);
+        this.reconnectTimeout = setTimeout(() => this.connect(), delay + jitter);
         this.reconnectAttempts++;
       } else {
         console.error('Max reconnect attempts reached. Giving up.');
@@ -196,16 +212,15 @@ export class SocketClient {
     };
 
     this.socket.onmessage = (event) => {
+      try {
       const message: SocketMessage = JSON.parse(event.data);
-
-      if (message.event === 'ping') {
-        this.send({ action: 'pong' });
-        return;
-      }
 
       const channel = this.channels[message.channel];
       if (channel) {
         channel.trigger(message.event, message.payload);
+      }
+      } catch (error) {
+        console.error('Error: ', error, 'While trying to parse Message:', event.data);
       }
     };
 
@@ -224,7 +239,7 @@ export class SocketClient {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(data));
     } else {
-      console.warn('WebSocket is not open. Unable to send message.');
+      this.log('WebSocket is not open. Unable to send message.');
       this.messageQueue.push(data);
     }
   }

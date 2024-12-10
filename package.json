@@ -1,11 +1,13 @@
 {
   "name": "pushpop/root",
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "release": "changeset version",
-    "publish": "cd ts-client && npx np",
+    "publish": "cd ts-client && pnpm publish",
     "check:ts": "cd ts-client && pnpm run lint",
-    "build": "cd ts-client && pnpm run build"
+    "build": "cd ts-client && pnpm run build",
+    "test": "cd ts-client && pnpm run test"
   },
   "dependencies": {
     "@changesets/changelog-github": "^0.4.8",

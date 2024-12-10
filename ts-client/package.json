@@ -1,6 +1,6 @@
 {
   "name": "@epklabs/pushpop",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "a front end client for PushPop written in typescript ",
   "main": "./dist/index.js",
   "source": "./src/index.ts",
@@ -35,7 +35,8 @@
     "build": "tsup",
     "test": "vitest",
     "lint": "npx @biomejs/biome check --write --unsafe",
-    "publish": "np --no-cleanup"
+    "release": "changeset version",
+    "publish": "pnpm build && npm publish"
   },
   "author": {
     "name": "BiohackerEllie",
