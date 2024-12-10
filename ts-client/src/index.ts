@@ -237,6 +237,7 @@ export class SocketClient {
     };
   }
 
+  // Queue for messages to be sent when the WebSocket is open
   private messageQueue: any[] = [];
 
   /**
