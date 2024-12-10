@@ -1,5 +1,11 @@
 # @epklabs/pushpop
 
+## 1.1.4
+
+### Patch Changes
+
+- 67707da: minor changes
+
 ## 1.1.3
 
 ### Patch Changes
