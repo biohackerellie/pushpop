@@ -58,7 +58,7 @@ export interface SocketOptions {
   /** Whether to use TLS (wss/https) or not */
   useTLS?: boolean;
   /** Whether to enable debug mode */
-  debug?: boolean
+  debug?: boolean;
 }
 
 /**
@@ -136,7 +136,7 @@ export class SocketClient {
     this.port = opts.port;
     this.useTLS = opts.useTLS;
     this.debug = opts.debug ?? false;
-    this.connect(); 
+    this.connect();
   }
 
   /**
@@ -147,7 +147,7 @@ export class SocketClient {
   channel(channelName: string): Channel | undefined {
     return this.channels[channelName];
   }
-  
+
   /**
    * Adds Logging Layer to the client
    * @param args The arguments to log
@@ -155,13 +155,12 @@ export class SocketClient {
    * @returns void
    */
   private log(...args: any[]) {
-    if (this.debug){
+    if (this.debug) {
       console.log(...args);
     }
   }
-  
 
-  private reconnectTimeout: NodeJS.Timeout | null = null
+  private reconnectTimeout: NodeJS.Timeout | null = null;
 
   /**
    * Initiates the WebSocket connection and sets up event handlers.
@@ -184,7 +183,6 @@ export class SocketClient {
         });
       });
 
-
       // Flush message queue
       while (this.messageQueue.length > 0) {
         const message = this.messageQueue.shift();
@@ -193,18 +191,23 @@ export class SocketClient {
     };
 
     this.socket.onclose = (event) => {
-
-      if(this.reconnectTimeout){
+      if (this.reconnectTimeout) {
         clearTimeout(this.reconnectTimeout);
         this.reconnectTimeout = null;
       }
 
       const shouldReconnect = event.code !== 1000 && event.code !== 1001;
 
-      if (shouldReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
+      if (
+        shouldReconnect &&
+        this.reconnectAttempts < this.maxReconnectAttempts
+      ) {
         const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 30000);
         const jitter = Math.random() * 500;
-        this.reconnectTimeout = setTimeout(() => this.connect(), delay + jitter);
+        this.reconnectTimeout = setTimeout(
+          () => this.connect(),
+          delay + jitter,
+        );
         this.reconnectAttempts++;
       } else {
         console.error('Max reconnect attempts reached. Giving up.');
@@ -213,14 +216,19 @@ export class SocketClient {
 
     this.socket.onmessage = (event) => {
       try {
-      const message: SocketMessage = JSON.parse(event.data);
+        const message: SocketMessage = JSON.parse(event.data);
 
-      const channel = this.channels[message.channel];
-      if (channel) {
-        channel.trigger(message.event, message.payload);
-      }
+        const channel = this.channels[message.channel];
+        if (channel) {
+          channel.trigger(message.event, message.payload);
+        }
       } catch (error) {
-        console.error('Error: ', error, 'While trying to parse Message:', event.data);
+        console.error(
+          'Error: ',
+          error,
+          'While trying to parse Message:',
+          event.data,
+        );
       }
     };
 

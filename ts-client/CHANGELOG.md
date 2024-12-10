@@ -1,5 +1,11 @@
 # @epklabs/pushpop
 
+## 1.1.3
+
+### Patch Changes
+
+- removed heartbeat and added optional logging
+
 ## 1.0.8
 
 ### Patch Changes
