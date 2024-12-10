@@ -4,8 +4,6 @@ on:
   pull_request:
     branches: ["*"]
   merge_group:
-  push:
-    branches: ["*"]
 
 jobs:
   lint:
@@ -30,7 +28,7 @@ jobs:
 
       - name: Check and Validate Changes 
         run: |
-          git fetch origin main
+          git fetch origin main:main
           changes=$(git diff --name-only main...${{ github.sha }} | grep '^ts-client/' || true)
           if [[ -n "$changes" ]]; then
             echo "Changes detected in /ts-client: $changes"

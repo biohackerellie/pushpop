@@ -1,0 +1,8 @@
+"📌 area: ci":
+  - any: [".github/**/*"]
+
+"📌 area: ts":
+  - any: ["ts-client/**/*"]
+
+"📌 area: ":
+  - any: ["*.go"]
