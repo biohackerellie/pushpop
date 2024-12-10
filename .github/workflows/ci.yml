@@ -30,7 +30,7 @@ jobs:
 
       - name: Check and Validate Changes 
         run: |
-          git fetch origin main:main
+          git fetch origin main
           changes=$(git diff --name-only main...${{ github.sha }} | grep '^ts-client/' || true)
           if [[ -n "$changes" ]]; then
             echo "Changes detected in /ts-client: $changes"
