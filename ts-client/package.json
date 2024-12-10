@@ -27,7 +27,7 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest",
-    "lint": "npx @biomejs/biome check",
+    "lint": "npx @biomejs/biome lint",
     "release": "changeset version",
     "pub:release": "pnpm build && npm publish",
     "typecheck": "tsc --noEmit"
