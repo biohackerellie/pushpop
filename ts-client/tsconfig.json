@@ -4,7 +4,7 @@
     // Base options.
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "target": "es2022",
+    "target": "esNext",
     "allowJs": true,
     "resolveJsonModule": true,
     "moduleDetection": "force",
@@ -20,5 +20,6 @@
     "module": "preserve",
     "noEmit": true,
     "lib": ["es2022", "dom"]
-  }
+  },
+  "include": ["src", "tsup.config.ts", "reset.d.ts"]
 }

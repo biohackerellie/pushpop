@@ -7,7 +7,8 @@
   "sideEffects": false,
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "CHANGELOG.md"
   ],
   "exports": {
     "./package.json": "./package.json",
@@ -34,9 +35,10 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest",
-    "lint": "npx @biomejs/biome check --write --unsafe",
+    "lint": "npx @biomejs/biome check",
     "release": "changeset version",
-    "publish": "pnpm build && npm publish"
+    "pub:release": "pnpm build && npm publish",
+    "typecheck": "tsc --noEmit"
   },
   "author": {
     "name": "BiohackerEllie",
@@ -50,5 +52,8 @@
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "@total-typescript/ts-reset": "^0.6.1"
   }
 }

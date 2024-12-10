@@ -216,7 +216,7 @@ export class SocketClient {
 
     this.socket.onmessage = (event) => {
       try {
-        const message: SocketMessage = JSON.parse(event.data);
+        const message = JSON.parse(event.data) as SocketMessage;
 
         const channel = this.channels[message.channel];
         if (channel) {
@@ -227,7 +227,7 @@ export class SocketClient {
           'Error: ',
           error,
           'While trying to parse Message:',
-          event.data,
+          event
         );
       }
     };
@@ -312,8 +312,12 @@ export class SocketClient {
    * @param callback The callback function to execute when the event is triggered.
    */
   bind<T>(channelName: string, eventName: string, callback: (data: T) => void) {
-    const channel = this.subscribe(channelName);
-    channel.bind(eventName, callback);
+    const channel = this.channels[channelName];
+    if (channel === undefined) {
+      this.log(`Channel ${channelName} not found`);
+    } else {
+      channel.bind(eventName, callback);
+    }
   }
 
   /**
@@ -326,9 +330,6 @@ export class SocketClient {
     const channel = this.channels[channelName];
     if (channel) {
       channel.unbind(eventName, callback);
-      if (channel.isEmpty()) {
-        this.unsubscribe(channelName); // Remove the channel if it has no events bound
-      }
     }
   }
 
