@@ -227,7 +227,7 @@ export class SocketClient {
           'Error: ',
           error,
           'While trying to parse Message:',
-          event
+          event,
         );
       }
     };
