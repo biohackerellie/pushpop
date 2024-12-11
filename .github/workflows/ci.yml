@@ -14,8 +14,11 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup
-
       - run: pnpm turbo lint
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
 
   check-changeset:
     runs-on: ubuntu-latest

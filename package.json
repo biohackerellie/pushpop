@@ -6,7 +6,6 @@
   "scripts": {
     "release": "changeset version",
     "pub:release": "cd ts-client && pnpm pub:release",
-    "lint": "golangci-lint run ./...",
     "clean": "git clean -xdf node_modules",
     "build": "make build-go",
     "build:root": "make build-go",
