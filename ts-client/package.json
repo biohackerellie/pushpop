@@ -35,7 +35,9 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest",
+    "dev": "tsup --watch",
     "lint": "npx @biomejs/biome lint",
+    "clean": "rm -rf dist node_modules",
     "release": "changeset version",
     "pub:release": "pnpm build && npm publish",
     "typecheck": "tsc --noEmit"
