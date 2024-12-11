@@ -1,15 +1,16 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.4/schema.json",
   "changelog": [
-    "@changesets/cli/changelog",
+    "@changesets/changelog-github",
     { "repo": "biohackerellie/pushpop" }
   ],
   "commit": false,
-  "fixed": [],
+  "fixed": [["pushpop", "@epklabs/pushpop"]],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [],
-  "changedFilePatterns": ["ts-client/src/**"]
+  "privatePackages": {"version": true, "tag": true},
+  "changedFilePatterns": ["ts-client/src/**", "**/*.go"]
 }

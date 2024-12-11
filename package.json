@@ -1,18 +1,25 @@
 {
-  "name": "pushpop/root",
-  "version": "0.0.0",
+  "name": "pushpop",
+  "version": "1.1.5",
   "type": "module",
+  "private": true,
   "scripts": {
     "release": "changeset version",
     "pub:release": "cd ts-client && pnpm pub:release",
-    "check": "cd ts-client && pnpm run lint",
-    "build": "cd ts-client && pnpm run build",
-    "test": "cd ts-client && pnpm run test",
-    "typecheck": "cd ts-client && pnpm run typecheck"
+    "clean": "git clean -xdf node_modules",
+    "build": "make build-go",
+    "build:root": "make build-go",
+    "dev": "turbo run dev dev:root --parallel",
+    "dev:root": "air -c .air.toml",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
   },
   "dependencies": {
     "@changesets/changelog-github": "^0.4.8",
     "@changesets/cli": "^2.27.3"
   },
-  "packageManager": "pnpm@9.14.4"
+  "packageManager": "pnpm@9.14.4",
+  "devDependencies": {
+    "turbo": "^2.3.3"
+  }
 }

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "extends": ["//"],
+  "tasks": {
+    "topo": {
+      "dependsOn": ["^topo"]
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [
+        "dist/**",
+        "bin/**",
+        ".turbo/.cache/tsbuildinfo.json"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "clean": {
+      "cache": false
+    },
+    "lint": {
+      "dependsOn": ["^topo"],
+      "outputs": [".turbo/.cache/tsbuildinfo.json"]
+    },
+    "typecheck": {
+      "dependsOn": ["^topo"],
+      "outputs": [".turbo/.cache/tsbuildinfo.json"]
+    }
+  }
+}
