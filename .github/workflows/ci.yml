@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup
 
-      - run: pnpm run check
+      - run: pnpm turbo lint
 
   check-changeset:
     runs-on: ubuntu-latest
