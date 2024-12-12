@@ -8,7 +8,7 @@
   "type": "module",
   "files": [
     "dist",
-    "../CHANGELOG.md"
+    "CHANGELOG.md"
   ],
   "exports": {
     "./package.json": "./package.json",
