@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "autoApprove": true,
+  "schedule": [
+    "after 10pm",
+    "before 5am"
+  ],
+  "baseBranches": [
+    "main"
+  ],
+  "gomod": {
+    "fileMatch": [
+      "(^|/)go\\.mod$"
+    ],
+    "pinDigests": false,
+    "postUpdateOptions": [
+      "gomodTidy"
+    ]
+  },
+  "updateInternalDeps": true,
+  "rangeStrategy": "bump",
+  "automerge": true,
+  "npm": {
+    "fileMatch": [
+      "(^|/)package\\.json$",
+      "(^|/)package\\.json\\.hbs$",
+      "pnpm-workspace\\.yaml$"
+    ]
+  }
+}

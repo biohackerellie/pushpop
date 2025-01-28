@@ -2,7 +2,6 @@ package pushpop
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -17,6 +16,7 @@ type Client struct {
 	hub      *Hub
 	conn     *websocket.Conn
 	send     chan Message
+	log      Logger
 }
 
 // Constants for WebSocket timeouts.
@@ -41,16 +41,16 @@ func ServeWs(hub *Hub) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Print("Failed to upgrade connection", "err", err)
+			hub.log.Error("Failed to upgrade connection", "err", err)
 			return
 		}
 		conn.SetReadLimit(maxMessageSize)
 		if err := conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
-			log.Print("Error setting read deadline", "err", err)
+			hub.log.Error("Error setting read deadline", "err", err)
 		}
 		conn.SetPongHandler(func(string) error {
 			if err := conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
-				log.Print("Error setting read deadline", "err", err)
+				hub.log.Error("Error setting read deadline", "err", err)
 			}
 			return nil
 		})
@@ -60,6 +60,7 @@ func ServeWs(hub *Hub) http.HandlerFunc {
 			conn:     conn,
 			send:     make(chan Message, 256),
 			channels: sync.Map{},
+			log:      hub.log,
 		}
 
 		hub.clients.Store(client, true)
@@ -80,24 +81,24 @@ func (c *Client) readPump() {
 		messageType, rawMessage, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-				log.Printf("WebSocket closed by client: %v", c.conn.RemoteAddr())
+				c.log.Info("WebSocket closed by client", "addr", c.conn.RemoteAddr())
 			} else if strings.Contains(err.Error(), "connection reset by peer") {
-				log.Printf("Connection reset by peer for client: %v. Cleaning up.", c.conn.RemoteAddr())
+				c.log.Warn("Connection reset by peer for client. Cleaning up.", "client", c.conn.RemoteAddr())
 			} else {
-				log.Printf("Error reading message from client: %v, err: %v", c.conn.RemoteAddr(), err)
+				c.log.Warn("Error reading message from client", "client", c.conn.RemoteAddr(), "err", err)
 			}
 			return
 		}
 
 		if messageType != websocket.TextMessage {
-			log.Printf("Unsupported message type from client: %v, type: %d", c.conn.RemoteAddr(), messageType)
+			c.log.Warn("Unsupported message type from client", "client", c.conn.RemoteAddr(), "message", messageType)
 			continue
 		}
 
 		// Parse the message as JSON
 		var message map[string]interface{}
 		if err := json.Unmarshal(rawMessage, &message); err != nil {
-			log.Printf("Invalid JSON from client: %v, message: %s, err: %v", c.conn.RemoteAddr(), string(rawMessage), err)
+			c.log.Warn("Invalid JSON from client", "client", c.conn.RemoteAddr(), "message", string(rawMessage), "err", err)
 			continue
 		}
 
@@ -109,27 +110,27 @@ func (c *Client) readPump() {
 		case "ping":
 			// Respond to client heartbeat
 			if err := c.conn.WriteMessage(websocket.TextMessage, []byte(`{"action":"pong"}`)); err != nil {
-				log.Printf("Error sending pong to client: %v, err: %v", c.conn.RemoteAddr(), err)
+				c.log.Error("Error sending pong to client", "client", c.conn.RemoteAddr(), "err", err)
 				return
 			}
 		case "subscribe":
 			if channel == "" {
-				log.Printf("Client %v attempted to subscribe without specifying a channel.", c.conn.RemoteAddr())
+				c.log.Warn("Client attempted to subscribe without specifying a channel.", "client", c.conn.RemoteAddr())
 				continue
 			}
 			c.hub.register <- &Subscription{Client: c, Channel: channel}
-			log.Printf("Client %v subscribed to channel: %s", c.conn.RemoteAddr(), channel)
+			c.log.Debug("Client subscribed to channel", "client", c.conn.RemoteAddr(), "channel", channel)
 		case "unsubscribe":
 			if channel == "" {
-				log.Printf("Client %v attempted to unsubscribe without specifying a channel.", c.conn.RemoteAddr())
+				c.log.Warn("Client attempted to unsubscribe without specifying a channel.", "client", c.conn.RemoteAddr())
 				continue
 			}
 			c.hub.unregister <- &Subscription{Client: c, Channel: channel}
-			log.Printf("Client %v unsubscribed from channel: %s", c.conn.RemoteAddr(), channel)
+			c.log.Debug("Client unsubscribed from channel", "client", c.conn.RemoteAddr(), "channel", channel)
 		case "message":
 			payload := message["payload"]
 			if channel == "" {
-				log.Printf("Client %v attempted to send a message without specifying a channel.", c.conn.RemoteAddr())
+				c.log.Warn("Client attempted to send a message without specifying a channel.", "client", c.conn.RemoteAddr())
 				continue
 			}
 			msg := Message{
@@ -138,9 +139,9 @@ func (c *Client) readPump() {
 				Payload: payload,
 			}
 			c.hub.broadcast <- msg
-			log.Printf("Client %v sent a message to channel: %s", c.conn.RemoteAddr(), channel)
+			c.log.Debug("Client sent a message to channel", "client", c.conn.RemoteAddr(), "channel", channel)
 		default:
-			log.Printf("Unhandled action: %s from client: %v", action, c.conn.RemoteAddr())
+			c.log.Error("Unhandled action from client", "action", action, "client", c.conn.RemoteAddr())
 		}
 	}
 }
@@ -157,7 +158,7 @@ func (c *Client) writePump() {
 		select {
 		case message, ok := <-c.send:
 			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
-				log.Print("Error setting write deadline", "err", err)
+				c.log.Error("Error setting write deadline", "err", err)
 			}
 			if !ok {
 				// The hub closed the channel.
@@ -167,21 +168,21 @@ func (c *Client) writePump() {
 
 			if err := c.conn.WriteJSON(message); err != nil {
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-					log.Print("WebSocket closed by client")
+					c.log.Debug("WebSocket closed by client")
 				} else {
-					log.Print("Error writing JSON", "err", err)
+					c.log.Error("Error writing JSON", "err", err)
 				}
 				return
 			}
 		case <-ticker.C:
 			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
-				log.Print("Error setting write deadline", "err", err)
+				c.log.Error("Error setting write deadline", "err", err)
 			}
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-					log.Print("WebSocket closed by client")
+					c.log.Debug("WebSocket closed by client")
 				} else {
-					log.Print("Error sending ping", "err", err)
+					c.log.Error("Error sending ping", "err", err)
 				}
 				return
 			}

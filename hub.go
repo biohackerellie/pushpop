@@ -3,7 +3,6 @@ package pushpop
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -29,16 +28,25 @@ type Hub struct {
 	register   chan *Subscription
 	unregister chan *Subscription
 	channels   sync.Map
+	log        Logger
+}
+
+type Logger interface {
+	Debug(msg string, args ...any)
+	Info(msg string, args ...any)
+	Warn(msg string, args ...any)
+	Error(msg string, args ...any)
 }
 
 // NewHub creates a new Hub.
-func NewHub() *Hub {
+func NewHub(log Logger) *Hub {
 	return &Hub{
 		broadcast:  make(chan Message, 100),
 		register:   make(chan *Subscription, 100),
 		unregister: make(chan *Subscription, 100),
 		channels:   sync.Map{},
 		clients:    sync.Map{},
+		log:        log,
 	}
 }
 
@@ -116,7 +124,7 @@ func HandleTrigger(hub *Hub) http.HandlerFunc {
 
 		var message Message
 		if err := json.NewDecoder(r.Body).Decode(&message); err != nil {
-			log.Print("error decoding message", err)
+			hub.log.Error("error decoding message", "err", err)
 			http.Error(w, "Invalid Request Body", http.StatusBadRequest)
 			return
 		}
