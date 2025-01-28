@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,9 +12,18 @@ import (
 
 func main() {
 
-	hub := p.NewHub()
-	go hub.Run()
+	var levelVar slog.LevelVar
+	level, _ := os.LookupEnv("LOG_LEVEL")
+	if err := levelVar.UnmarshalText([]byte(level)); err != nil {
+		levelVar.Set(slog.LevelError)
+	}
+	logHandler := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: &levelVar,
+	})
+	log := slog.New(logHandler)
 
+	hub := p.NewHub(log)
+	go hub.Run()
 	// Register routes
 	http.HandleFunc("/trigger", p.HandleTrigger(hub))
 	http.HandleFunc("/ws", p.ServeWs(hub))
@@ -29,18 +38,19 @@ func main() {
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal("Server error", "err", err)
+			log.Error("Server error", "err", err)
+			panic(err)
 		}
 	}()
 	// Wait for shutdown signal
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 	<-signalChan
-	log.Print("Shutting down server...")
+	log.Info("Shutting down server...")
 
 	// Stop accepting new requests and clean up
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		log.Fatal("Server shutdown failed", "err", err)
+		log.Error("Server shutdown failed", "err", err)
 	}
-	log.Print("Server gracefully stopped")
+	log.Info("Server gracefully stopped")
 }
