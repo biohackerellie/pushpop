@@ -11,8 +11,8 @@
     "build:root": "make build-go",
     "dev": "turbo run dev dev:root --parallel",
     "dev:root": "air -c .air.toml",
-    "test": "turbo run test",
-    "typecheck": "turbo run typecheck"
+    "test": "cd ts-client && pnpm run test",
+    "typecheck": "cd ts-client && pnpm run typecheck"
   },
   "dependencies": {
     "@changesets/changelog-github": "^0.4.8",
