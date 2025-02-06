@@ -49,11 +49,11 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^22.13.0",
+    "@types/node": "^22.13.1",
     "np": "^10.2.0",
     "tsup": "^8.3.6",
     "typescript": "^5.7.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.9"
   },
   "dependencies": {
     "@total-typescript/ts-reset": "^0.6.1"

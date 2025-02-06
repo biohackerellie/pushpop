@@ -1,5 +1,5 @@
 module github.com/biohackerellie/pushpop
 
-go 1.23.5
+go 1.23.6
 
 require github.com/gorilla/websocket v1.5.3
