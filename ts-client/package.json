@@ -25,7 +25,7 @@
     "typescript"
   ],
   "engines": {
-    "node": ">=22.14.0"
+    "node": ">=22.15.0"
   },
   "homepage": "https://github.com/biohackerellie/pushpop",
   "repository": {
@@ -49,10 +49,10 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^22.13.5",
+    "@types/node": "^22.15.17",
     "np": "^10.2.0",
     "tsup": "^8.4.0",
-    "typescript": "^5.7.3",
+    "typescript": "^5.8.3",
     "vitest": "^2.1.9"
   },
   "dependencies": {
