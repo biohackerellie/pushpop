@@ -9,11 +9,10 @@ RUN go mod tidy
 
 COPY . .
 
-# Build a statically linked binary
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./bin/pushpop ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" ./bin/pushpop ./cmd/main.go
 
 # Minimal Runtime Stage
-FROM scratch
+FROM gcr.io/distroless/static
 
 WORKDIR /
 

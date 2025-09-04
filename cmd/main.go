@@ -42,6 +42,8 @@ func main() {
 			panic(err)
 		}
 	}()
+
+	log.Info("Server started")
 	// Wait for shutdown signal
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
