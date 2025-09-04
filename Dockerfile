@@ -9,7 +9,7 @@ RUN go mod tidy
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" ./bin/pushpop ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o ./bin/pushpop ./cmd/main.go
 
 # Minimal Runtime Stage
 FROM gcr.io/distroless/static
