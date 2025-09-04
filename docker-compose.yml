@@ -1,0 +1,11 @@
+services:
+  socket:
+    image: gpushpop
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8945:8945"
+    environment:
+      - TZ=America/Denver
+    restart: unless-stopped

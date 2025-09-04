@@ -15,7 +15,7 @@ func main() {
 	var levelVar slog.LevelVar
 	level, _ := os.LookupEnv("LOG_LEVEL")
 	if err := levelVar.UnmarshalText([]byte(level)); err != nil {
-		levelVar.Set(slog.LevelError)
+		levelVar.Set(slog.LevelInfo)
 	}
 	logHandler := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: &levelVar,

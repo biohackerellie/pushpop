@@ -19,5 +19,5 @@ WORKDIR /
 # Copy the statically built binary
 COPY --from=builder /app/bin/pushpop ./pushpop
 
-# Default command
-CMD ["./pushpop"]
+EXPOSE 8945
+ENTRYPOINT ["/pushpop"]
