@@ -41,7 +41,7 @@ jobs:
           NODE_ENV: "production"
 
       - name: Log in to the Container registry
-        uses: docker/login-action@abd3abc99c62be8f17fda11fadefceaa006f6f9e
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
