@@ -9,7 +9,7 @@ runs:
       with:
         node-version: 20
         cache: "pnpm"
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
     - shell: bash
       run: pnpm install
     - shell: bash
